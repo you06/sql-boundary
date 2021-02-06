@@ -48,9 +48,9 @@ func (c Case) Execute(db *sql.DB, table string) error {
 
 	var (
 		err       error
-		createSQL = "CREATE TABLE t(c " + c.DataDef + ")"
-		insertSQL = "INSERT INTO t VALUES(" + c.InitVal.String() + ")"
-		updateSQL = fmt.Sprintf("UPDATE t SET c = %s(%s)", c.FName, strings.Join(argStrings, ","))
+		createSQL = "CREATE TABLE t(c " + c.DataDef + ");"
+		insertSQL = "INSERT INTO t VALUES(" + c.InitVal.String() + ");"
+		updateSQL = fmt.Sprintf("UPDATE t SET c = %s(%s);", c.FName, strings.Join(argStrings, ","))
 	)
 	// insert and update
 	// MustExec(db, "TRUNCATE TABLE t")
@@ -84,26 +84,20 @@ func GetFunc(name string) *Func {
 	return funcs[name]
 }
 
-func IterateCases(call func(fName string, one *Case) error, stopErr bool) error {
+func IterateCases(call func(fName string, one *Case)) {
 	for _, f := range funcs {
 		for _, one := range f.Cases {
-			if err := call(f.Name, one); err != nil {
-				if stopErr {
-					return err
-				}
-			}
+			call(f.Name, one)
 		}
 	}
-	return nil
 }
 
 func init() {
 	InitDateFunctions()
 	// assign func names
-	_ = IterateCases(func(fName string, one *Case) error {
+	IterateCases(func(fName string, one *Case) {
 		one.FName = fName
-		return nil
-	}, true)
+	})
 }
 
 var (

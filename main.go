@@ -24,16 +24,18 @@ func main() {
 	}
 	MustExec(db, "SET SESSION time_zone = 'UTC'")
 	caseCount := 0
-	if err := IterateCases(func(fName string, one *Case) error {
+	caseFailed := 0
+	IterateCases(func(fName string, one *Case) {
 		MustExec(db, "DROP TABLE IF EXISTS t")
 		err := one.Execute(db, "t")
+		if err != nil {
+			fmt.Println(err)
+			fmt.Println()
+			caseFailed++
+		}
 		caseCount++
-		return err
-	}, true); err != nil {
-		fmt.Println("test failed", err)
-	} else {
-		fmt.Println(caseCount, "cases passed")
-	}
+	})
+	fmt.Printf("%d cases passed, %d failed\n", caseCount, caseFailed)
 }
 
 func MustExec(db *sql.DB, sqlStmt string) {
